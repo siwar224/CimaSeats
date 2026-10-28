@@ -26,14 +26,14 @@ class ReservationService:
         data = read_json(self.reservations_path, default=[])
         if not isinstance(data, list):
             raise JsonFileError(
-                "Le fichier reservations.json doit contenir une liste JSON."
+                "File reservations.json must contain a JSON list."
             )
         try:
             return [Reservation.from_dict(item) for item in data]
         except (KeyError, TypeError, ValueError) as error:
             raise JsonFileError(
-                f"Le fichier '{self.reservations_path.name}' contient une réservation "
-                f"invalide : {error}"
+                f"File '{self.reservations_path.name}' contains an invalid reservation: "
+                f"{error}"
             ) from error
 
     def get_reservations_for_session(self, session_id: str) -> list[Reservation]:
@@ -58,17 +58,17 @@ class ReservationService:
         """Format a customer's reservations for terminal display."""
         reservations = self.get_reservations_for_customer(customer_email)
         if not reservations:
-            return "Aucune réservation trouvée pour cet email."
+            return "No reservations found for this email."
 
-        lines = ["Vos réservations", "-" * 72]
+        lines = ["Your reservations", "-" * 72]
         for reservation in reservations:
             lines.extend(
                 [
                     f"ID         : {reservation.id}",
-                    f"Séance     : {reservation.session_id}",
-                    f"Sièges     : {', '.join(reservation.seats)}",
-                    f"Montant    : {reservation.total_amount:.2f} EUR",
-                    f"Statut     : {reservation.status.value}",
+                    f"Session    : {reservation.session_id}",
+                    f"Seats      : {', '.join(reservation.seats)}",
+                    f"Amount     : {reservation.total_amount:.2f} EUR",
+                    f"Status     : {reservation.status.value}",
                     "-" * 72,
                 ]
             )
@@ -99,22 +99,22 @@ class ReservationService:
         """
         requested_seats = tuple(seat.strip().upper() for seat in seats)
         if not requested_seats or any(not seat for seat in requested_seats):
-            raise ValueError("Vous devez sélectionner au moins un siège.")
+            raise ValueError("You must select at least one seat.")
         if len(set(requested_seats)) != len(requested_seats):
-            raise ValueError("Un même siège ne peut pas être sélectionné deux fois.")
+            raise ValueError("The same seat cannot be selected more than once.")
 
         invalid_seats = set(requested_seats).difference(session.all_seats)
         if invalid_seats:
             raise ValueError(
-                f"Siège(s) inexistant(s) : {', '.join(sorted(invalid_seats))}."
+                f"Seat(s) do not exist: {', '.join(sorted(invalid_seats))}."
             )
 
         booked_seats = self.get_booked_seats_for_session(session.id)
         occupied_seats = set(requested_seats).intersection(booked_seats)
         if occupied_seats:
             raise ValueError(
-                f"Siège(s) déjà occupé(s) pour cette séance : "
-                f"{', '.join(sorted(occupied_seats))}. Réservation refusée."
+                f"Seat(s) already occupied for this session: "
+                f"{', '.join(sorted(occupied_seats))}. Booking rejected."
             )
 
         reservation = Reservation(
@@ -140,10 +140,27 @@ class ReservationService:
             reservation_id = f"RES-{uuid4().hex[:8].upper()}"
         return reservation_id
 
-    def consult_reservations(self) -> str:
-        """Return the reservation consultation screen output."""
-        return "Consultation\nLa consultation des réservations sera bientôt disponible."
+    def cancel_reservation(
+        self,
+        reservation_id: str,
+        customer_email: str,
+    ) -> Reservation:
+        """Cancel and persist a reservation belonging to the given customer."""
+        searched_id = reservation_id.strip().upper()
+        searched_email = customer_email.strip().lower()
+        reservations = self.get_reservations()
+        reservation = next(
+            (
+                item
+                for item in reservations
+                if item.id.upper() == searched_id
+                and item.customer_email.lower() == searched_email
+            ),
+            None,
+        )
+        if reservation is None:
+            raise ValueError("Reservation not found for this ID and email.")
 
-    def cancel_reservation(self) -> str:
-        """Return the reservation cancellation screen output."""
-        return "Cancelation\nL'annulation des réservations sera bientôt disponible."
+        reservation.cancel()
+        write_json(self.reservations_path, [item.to_dict() for item in reservations])
+        return reservation

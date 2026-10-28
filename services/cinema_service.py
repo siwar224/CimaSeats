@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from models import Movie, Room, Session
@@ -28,12 +29,12 @@ class CinemaService:
         """Load all active movies from the JSON data file."""
         data = read_json(self.movies_path, default=[])
         if not isinstance(data, list):
-            raise JsonFileError("Le fichier movies.json doit contenir une liste JSON.")
+            raise JsonFileError("File movies.json must contain a JSON list.")
         try:
             movies = [Movie.from_dict(item) for item in data]
         except (KeyError, TypeError, ValueError) as error:
             raise JsonFileError(
-                f"Le fichier '{self.movies_path.name}' contient un film invalide : {error}"
+                f"File '{self.movies_path.name}' contains an invalid movie: {error}"
             ) from error
         return [movie for movie in movies if movie.is_active]
 
@@ -49,12 +50,12 @@ class CinemaService:
         """Load all sessions from the JSON data file in chronological order."""
         data = read_json(self.sessions_path, default=[])
         if not isinstance(data, list):
-            raise JsonFileError("Le fichier sessions.json doit contenir une liste JSON.")
+            raise JsonFileError("File sessions.json must contain a JSON list.")
         try:
             sessions = [Session.from_dict(item) for item in data]
         except (KeyError, TypeError, ValueError) as error:
             raise JsonFileError(
-                f"Le fichier '{self.sessions_path.name}' contient une séance invalide : {error}"
+                f"File '{self.sessions_path.name}' contains an invalid session: {error}"
             ) from error
         return sorted(sessions, key=lambda session: session.start_time)
 
@@ -71,12 +72,12 @@ class CinemaService:
         """Load all cinema rooms from the JSON data file."""
         data = read_json(self.rooms_path, default=[])
         if not isinstance(data, list):
-            raise JsonFileError("Le fichier rooms.json doit contenir une liste JSON.")
+            raise JsonFileError("File rooms.json must contain a JSON list.")
         try:
             return [Room.from_dict(item) for item in data]
         except (KeyError, TypeError, ValueError) as error:
             raise JsonFileError(
-                f"Le fichier '{self.rooms_path.name}' contient une salle invalide : {error}"
+                f"File '{self.rooms_path.name}' contains an invalid room: {error}"
             ) from error
 
     def get_room_for_session(self, session: Session) -> Room:
@@ -101,9 +102,9 @@ class CinemaService:
 
         seat_numbers = " ".join(f"{number:>3}" for number in range(1, room.seats_per_row + 1))
         lines = [
-            f"Salle : {room.name} ({room.capacity} places)",
-            f"Séance : {session.id} | {session.start_time.strftime('%d/%m/%Y à %H:%M')} | "
-            f"Prix : {session.ticket_price:.2f} EUR",
+            f"Room: {room.name} ({room.capacity} seats)",
+            f"Session: {session.id} | {session.start_time.strftime('%d/%m/%Y at %H:%M')} | "
+            f"Price: {session.ticket_price:.2f} EUR",
             "",
             f"      {seat_numbers}",
         ]
@@ -120,8 +121,8 @@ class CinemaService:
         lines.extend(
             [
                 "",
-                "Légende : [ ] Libre    [X] Occupée",
-                f"Places libres : {available_count}/{room.capacity}",
+                "Legend: [ ] Available    [X] Occupied",
+                f"Available seats: {available_count}/{room.capacity}",
             ]
         )
         return "\n".join(lines)
@@ -131,10 +132,10 @@ class CinemaService:
         room = self.get_room_for_session(session)
         normalised_seat = seat.strip().upper()
         if not room.is_valid_seat(normalised_seat):
-            return f"Le siège {normalised_seat or '(vide)'} n'existe pas dans cette salle."
+            return f"Seat {normalised_seat or '(empty)'} does not exist in this room."
         if normalised_seat in {item.upper() for item in booked_seats}:
-            return f"Le siège {normalised_seat} est occupé pour la séance {session.id}."
-        return f"Le siège {normalised_seat} est libre pour la séance {session.id}."
+            return f"Seat {normalised_seat} is occupied for session {session.id}."
+        return f"Seat {normalised_seat} is available for session {session.id}."
 
     def get_session_by_id(self, session_id: str) -> Session | None:
         """Return a session by ID, ignoring surrounding spaces and case."""
@@ -148,9 +149,9 @@ class CinemaService:
         """Format the complete movie catalogue for terminal display."""
         movies = self.get_movies()
         if not movies:
-            return "Films\nAucun film disponible."
+            return "Movies\nNo movies available."
 
-        lines = ["Films disponibles", "-" * 78]
+        lines = ["Available movies", "-" * 78]
         for movie in movies:
             year = movie.release_year or "N/A"
             lines.append(
@@ -159,33 +160,52 @@ class CinemaService:
             )
         return "\n".join(lines)
 
-    def list_sessions(self) -> str:
+    def list_sessions(
+        self,
+        booked_seats_provider: Callable[[str], set[str]] | None = None,
+    ) -> str:
         """Format all sessions for terminal display."""
         sessions = self.get_sessions()
         if not sessions:
-            return "Sessions\nAucune séance disponible."
-        return "Sessions disponibles\n" + "\n".join(
-            self._format_session(session) for session in sessions
+            return "Sessions\nNo sessions available."
+        return "Available sessions\n" + "\n".join(
+            self._format_session(session, booked_seats_provider)
+            for session in sessions
         )
 
-    def list_sessions_for_movie(self, movie_id: str) -> str:
+    def list_sessions_for_movie(
+        self,
+        movie_id: str,
+        booked_seats_provider: Callable[[str], set[str]] | None = None,
+    ) -> str:
         """Format sessions belonging to a selected movie."""
         sessions = self.get_sessions_for_movie(movie_id)
         if not sessions:
-            return "Aucune séance disponible pour ce film."
-        return "\n".join(self._format_session(session) for session in sessions)
+            return "No sessions available for this movie."
+        return "\n".join(
+            self._format_session(session, booked_seats_provider)
+            for session in sessions
+        )
 
     @staticmethod
-    def _format_session(session: Session) -> str:
+    def _format_session(
+        session: Session,
+        booked_seats_provider: Callable[[str], set[str]] | None = None,
+    ) -> str:
         """Format one session with its relationship and viewing details."""
-        date_time = session.start_time.strftime("%d/%m/%Y à %H:%M")
-        available_seats = len(session.available_seats)
+        date_time = session.start_time.strftime("%d/%m/%Y at %H:%M")
+        booked_seats = (
+            booked_seats_provider(session.id)
+            if booked_seats_provider is not None
+            else session.booked_seats
+        )
+        available_seats = len(session.all_seats.difference(booked_seats))
         return (
-            f"{session.id:<6} | Film: {session.movie_id:<6} | {date_time} | "
+            f"{session.id:<6} | Movie: {session.movie_id:<6} | {date_time} | "
             f"{session.hall:<8} | {session.ticket_price:.2f} EUR | "
-            f"{available_seats} places disponibles"
+            f"{available_seats} seats available"
         )
 
     def list_available_seats(self) -> str:
         """Return the seat availability screen output."""
-        return "Seats\nLa fonctionnalité des sièges sera bientôt disponible."
+        return "Seats\nSeat availability is shown after selecting a session."

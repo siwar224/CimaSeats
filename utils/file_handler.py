@@ -24,12 +24,12 @@ def read_json(path: str | Path, default: Any | None = None) -> Any:
             return json.load(file)
     except json.JSONDecodeError as error:
         raise JsonFileError(
-            f"Le fichier '{file_path.name}' contient un JSON malformé "
-            f"(ligne {error.lineno}, colonne {error.colno})."
+            f"File '{file_path.name}' contains malformed JSON "
+            f"(line {error.lineno}, column {error.colno})."
         ) from error
     except OSError as error:
         raise JsonFileError(
-            f"Impossible de lire le fichier '{file_path.name}'."
+            f"Unable to read file '{file_path.name}'."
         ) from error
 
 
@@ -43,5 +43,5 @@ def write_json(path: str | Path, data: Any) -> None:
             file.write("\n")
     except (OSError, TypeError, ValueError) as error:
         raise JsonFileError(
-            f"Impossible d'enregistrer les données dans '{file_path.name}'."
+            f"Unable to save data to '{file_path.name}'."
         ) from error
