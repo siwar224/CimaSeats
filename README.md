@@ -17,7 +17,13 @@ their movie through `movie_id` in `data/sessions.json`. Rooms are defined in
 ### Requirements
 
 - Python 3.11 or newer
-- No external packages are required; the project uses the Python standard library
+- Streamlit (listed in `requirements.txt`) for the web interface
+
+Install the project dependencies with:
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 ### Start the CLI
 
@@ -62,12 +68,23 @@ or missing data files.
 
 ## Streamlit UI
 
-The Streamlit entry point is prepared in `app.py` and currently contains no
-visible UI components. Start it with:
+The Streamlit entry point is `app.py`. It provides a functional booking screen
+connected to the existing services and JSON data:
+
+- movie selection with movie information;
+- showtime selection;
+- interactive seat map with available, selected, and occupied seats;
+- customer information and total-price calculation;
+- ticket confirmation saved to `data/reservations.json`.
+
+Start it with:
 
 ```bash
 streamlit run app.py
 ```
+
+The browser interface and the CLI use the same JSON files and reservation
+business rules.
 
 ## Project structure
 
