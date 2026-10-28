@@ -6,7 +6,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from models import Movie, Room, Session
-from utils.file_handler import JsonFileError, read_json
+from utils.file_handler import read_json_records
 
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data"
@@ -27,15 +27,7 @@ class CinemaService:
 
     def get_movies(self) -> list[Movie]:
         """Load all active movies from the JSON data file."""
-        data = read_json(self.movies_path, default=[])
-        if not isinstance(data, list):
-            raise JsonFileError("File movies.json must contain a JSON list.")
-        try:
-            movies = [Movie.from_dict(item) for item in data]
-        except (KeyError, TypeError, ValueError) as error:
-            raise JsonFileError(
-                f"File '{self.movies_path.name}' contains an invalid movie: {error}"
-            ) from error
+        movies = read_json_records(self.movies_path, Movie.from_dict, "movie")
         return [movie for movie in movies if movie.is_active]
 
     def get_movie_by_id(self, movie_id: str) -> Movie | None:
@@ -48,15 +40,7 @@ class CinemaService:
 
     def get_sessions(self) -> list[Session]:
         """Load all sessions from the JSON data file in chronological order."""
-        data = read_json(self.sessions_path, default=[])
-        if not isinstance(data, list):
-            raise JsonFileError("File sessions.json must contain a JSON list.")
-        try:
-            sessions = [Session.from_dict(item) for item in data]
-        except (KeyError, TypeError, ValueError) as error:
-            raise JsonFileError(
-                f"File '{self.sessions_path.name}' contains an invalid session: {error}"
-            ) from error
+        sessions = read_json_records(self.sessions_path, Session.from_dict, "session")
         return sorted(sessions, key=lambda session: session.start_time)
 
     def get_sessions_for_movie(self, movie_id: str) -> list[Session]:
@@ -70,15 +54,7 @@ class CinemaService:
 
     def get_rooms(self) -> list[Room]:
         """Load all cinema rooms from the JSON data file."""
-        data = read_json(self.rooms_path, default=[])
-        if not isinstance(data, list):
-            raise JsonFileError("File rooms.json must contain a JSON list.")
-        try:
-            return [Room.from_dict(item) for item in data]
-        except (KeyError, TypeError, ValueError) as error:
-            raise JsonFileError(
-                f"File '{self.rooms_path.name}' contains an invalid room: {error}"
-            ) from error
+        return read_json_records(self.rooms_path, Room.from_dict, "room")
 
     def get_room_for_session(self, session: Session) -> Room:
         """Return the room linked to a session through its hall identifier."""
@@ -145,7 +121,7 @@ class CinemaService:
             None,
         )
 
-    def list_movies(self) -> str:
+    def format_movie_catalog(self) -> str:
         """Format the complete movie catalogue for terminal display."""
         movies = self.get_movies()
         if not movies:
@@ -160,7 +136,7 @@ class CinemaService:
             )
         return "\n".join(lines)
 
-    def list_sessions(
+    def format_session_catalog(
         self,
         booked_seats_provider: Callable[[str], set[str]] | None = None,
     ) -> str:
@@ -173,7 +149,7 @@ class CinemaService:
             for session in sessions
         )
 
-    def list_sessions_for_movie(
+    def format_movie_sessions(
         self,
         movie_id: str,
         booked_seats_provider: Callable[[str], set[str]] | None = None,
@@ -206,6 +182,3 @@ class CinemaService:
             f"{available_seats} seats available"
         )
 
-    def list_available_seats(self) -> str:
-        """Return the seat availability screen output."""
-        return "Seats\nSeat availability is shown after selecting a session."

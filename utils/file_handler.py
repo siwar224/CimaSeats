@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
+
+
+Record = TypeVar("Record")
 
 
 class JsonFileError(Exception):
@@ -44,4 +48,23 @@ def write_json(path: str | Path, data: Any) -> None:
     except (OSError, TypeError, ValueError) as error:
         raise JsonFileError(
             f"Unable to save data to '{file_path.name}'."
+        ) from error
+
+
+def read_json_records(
+    path: str | Path,
+    record_factory: Callable[[dict[str, Any]], Record],
+    record_name: str,
+) -> list[Record]:
+    """Read a JSON list and convert each item into a domain object."""
+    file_path = Path(path)
+    data = read_json(file_path, default=[])
+    if not isinstance(data, list):
+        raise JsonFileError(f"File {file_path.name} must contain a JSON list.")
+
+    try:
+        return [record_factory(item) for item in data]
+    except (KeyError, TypeError, ValueError) as error:
+        raise JsonFileError(
+            f"File '{file_path.name}' contains an invalid {record_name}: {error}"
         ) from error

@@ -6,7 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from models import Reservation, ReservationStatus, Session
-from utils.file_handler import JsonFileError, read_json, write_json
+from utils.file_handler import read_json_records, write_json
 
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data"
@@ -23,18 +23,11 @@ class ReservationService:
 
     def get_reservations(self) -> list[Reservation]:
         """Load reservations from the JSON data file."""
-        data = read_json(self.reservations_path, default=[])
-        if not isinstance(data, list):
-            raise JsonFileError(
-                "File reservations.json must contain a JSON list."
-            )
-        try:
-            return [Reservation.from_dict(item) for item in data]
-        except (KeyError, TypeError, ValueError) as error:
-            raise JsonFileError(
-                f"File '{self.reservations_path.name}' contains an invalid reservation: "
-                f"{error}"
-            ) from error
+        return read_json_records(
+            self.reservations_path,
+            Reservation.from_dict,
+            "reservation",
+        )
 
     def get_reservations_for_session(self, session_id: str) -> list[Reservation]:
         """Return only active reservations belonging to one session."""
@@ -45,34 +38,17 @@ class ReservationService:
             if reservation.session_id.upper() == searched_id and reservation.is_active
         ]
 
-    def get_reservations_for_customer(self, customer_email: str) -> list[Reservation]:
-        """Return confirmed and cancelled reservations for one customer email."""
-        searched_email = customer_email.strip().lower()
-        return [
-            reservation
-            for reservation in self.get_reservations()
-            if reservation.customer_email.lower() == searched_email
-        ]
-
-    def format_customer_reservations(self, customer_email: str) -> str:
-        """Format a customer's reservations for terminal display."""
-        reservations = self.get_reservations_for_customer(customer_email)
-        if not reservations:
-            return "No reservations found for this email."
-
-        lines = ["Your reservations", "-" * 72]
-        for reservation in reservations:
-            lines.extend(
-                [
-                    f"ID         : {reservation.id}",
-                    f"Session    : {reservation.session_id}",
-                    f"Seats      : {', '.join(reservation.seats)}",
-                    f"Amount     : {reservation.total_amount:.2f} EUR",
-                    f"Status     : {reservation.status.value}",
-                    "-" * 72,
-                ]
-            )
-        return "\n".join(lines)
+    def get_reservation_by_id(self, reservation_id: str) -> Reservation | None:
+        """Return a reservation by its identifier, regardless of letter case."""
+        searched_id = reservation_id.strip().upper()
+        return next(
+            (
+                reservation
+                for reservation in self.get_reservations()
+                if reservation.id.upper() == searched_id
+            ),
+            None,
+        )
 
     def get_booked_seats_for_session(self, session_id: str) -> set[str]:
         """Return occupied seats for one session only.
@@ -143,23 +119,20 @@ class ReservationService:
     def cancel_reservation(
         self,
         reservation_id: str,
-        customer_email: str,
     ) -> Reservation:
-        """Cancel and persist a reservation belonging to the given customer."""
+        """Cancel and persist a reservation identified by its ID."""
         searched_id = reservation_id.strip().upper()
-        searched_email = customer_email.strip().lower()
         reservations = self.get_reservations()
         reservation = next(
             (
                 item
                 for item in reservations
                 if item.id.upper() == searched_id
-                and item.customer_email.lower() == searched_email
             ),
             None,
         )
         if reservation is None:
-            raise ValueError("Reservation not found for this ID and email.")
+            raise ValueError("Reservation not found.")
 
         reservation.cancel()
         write_json(self.reservations_path, [item.to_dict() for item in reservations])

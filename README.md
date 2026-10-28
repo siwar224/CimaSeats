@@ -14,6 +14,13 @@ their movie through `movie_id` in `data/sessions.json`. Rooms are defined in
 
 ## Run
 
+### Requirements
+
+- Python 3.11 or newer
+- No external packages are required; the project uses the Python standard library
+
+### Start the CLI
+
 ```bash
 python main.py
 ```
@@ -31,10 +38,38 @@ The menu is fully available in English:
 Choose `Book Tickets`, enter a movie ID such as `MOV001`, then select one of
 the displayed session IDs. The terminal displays the room layout with `[ ]`
 for a free seat and `[X]` for an occupied seat. `View Reservation` searches
-by customer email, and `Cancel Reservation` requires both the reservation ID
-and the booking email.
+by reservation ID and displays the movie, session, seats, amount paid, and
+status. `Cancel Reservation` also uses the reservation ID; a confirmed
+reservation becomes `cancelled` without being removed from the JSON history,
+and its seats become available again.
 
 All movies are read from `data/movies.json`. Reservations are read from and
 saved to `data/reservations.json`, so they remain available after restarting
 the application. Missing JSON files are initialized automatically; malformed
 files are reported as data errors without crashing the menu.
+
+## Run the tests
+
+From the project root:
+
+```bash
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+The test suite covers movie and session loading, seat-map rendering, JSON
+persistence, invalid seat rejection, reservation cancellation, and malformed
+or missing data files.
+
+## Project structure
+
+```text
+CimaSeats/
+├── main.py
+├── models/
+├── services/
+├── utils/
+├── data/
+├── tests/
+├── requirements.txt
+└── README.md
+```

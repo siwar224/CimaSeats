@@ -30,12 +30,12 @@ def display_menu() -> None:
         print(f"{number}. {label}")
 
 
-def book_tickets_flow(
+def book_tickets(
     cinema_service: CinemaService,
     reservation_service: ReservationService,
 ) -> None:
     """Display movies, select a movie and session, then create a booking."""
-    print(f"\n{cinema_service.list_movies()}")
+    print(f"\n{cinema_service.format_movie_catalog()}")
     movie_id = input("\nMovie ID (or press Enter to return): ").strip()
     if not movie_id:
         return
@@ -48,7 +48,7 @@ def book_tickets_flow(
     sessions = cinema_service.get_sessions_for_movie(movie.id)
     print(f"\nSessions for {movie.title} ({movie.id})")
     print(
-        cinema_service.list_sessions_for_movie(
+        cinema_service.format_movie_sessions(
             movie.id,
             reservation_service.get_booked_seats_for_session,
         )
@@ -68,7 +68,7 @@ def book_tickets_flow(
         return
 
     booked_seats = reservation_service.get_booked_seats_for_session(selected_session.id)
-    complete_reservation(
+    create_booking(
         cinema_service,
         reservation_service,
         movie,
@@ -79,7 +79,7 @@ def book_tickets_flow(
 
 def view_movies(cinema_service: CinemaService) -> None:
     """Display the movie catalogue."""
-    print(f"\n{cinema_service.list_movies()}")
+    print(f"\n{cinema_service.format_movie_catalog()}")
 
 
 def view_sessions(
@@ -87,7 +87,7 @@ def view_sessions(
     reservation_service: ReservationService,
 ) -> None:
     """Display every session with current available-seat counts."""
-    sessions_output = cinema_service.list_sessions(
+    sessions_output = cinema_service.format_session_catalog(
         reservation_service.get_booked_seats_for_session
     )
     print(f"\n{sessions_output}")
@@ -114,7 +114,7 @@ def view_available_seats(
         print(cinema_service.check_seat(session, seat, booked_seats))
 
 
-def complete_reservation(
+def create_booking(
     cinema_service: CinemaService,
     reservation_service: ReservationService,
     movie,
@@ -150,13 +150,13 @@ def complete_reservation(
         print(f"\nBooking rejected: {error}")
         return
 
-    print_confirmation_ticket(reservation, movie, session)
+    print_booking_ticket(reservation, movie, session)
     updated_booked_seats = reservation_service.get_booked_seats_for_session(session.id)
     print("\nUpdated seat map")
     print(cinema_service.format_seat_map(session, updated_booked_seats))
 
 
-def print_confirmation_ticket(reservation: Reservation, movie, session) -> None:
+def print_booking_ticket(reservation: Reservation, movie, session) -> None:
     """Print a clear terminal ticket for a confirmed reservation."""
     border = "+" + "=" * 62 + "+"
     print("\n" + border)
@@ -178,36 +178,63 @@ def print_confirmation_ticket(reservation: Reservation, movie, session) -> None:
     print(border)
 
 
-def consult_customer_reservations(reservation_service: ReservationService) -> None:
-    """Display reservations belonging to the customer identified by email."""
-    customer_email = input(
-        "\nBooking email (or press Enter to return): "
+def view_reservation_details(
+    cinema_service: CinemaService,
+    reservation_service: ReservationService,
+) -> None:
+    """Display the complete details of one reservation by ID."""
+    reservation_id = input(
+        "\nReservation ID (or press Enter to return): "
     ).strip()
-    if not customer_email:
+    if not reservation_id:
         return
-    print(f"\n{reservation_service.format_customer_reservations(customer_email)}")
+
+    reservation = reservation_service.get_reservation_by_id(reservation_id)
+    if reservation is None:
+        print("\nReservation not found.")
+        return
+
+    session = cinema_service.get_session_by_id(reservation.session_id)
+    movie = cinema_service.get_movie_by_id(session.movie_id) if session else None
+    print("\n" + "=" * 58)
+    print("RESERVATION DETAILS")
+    print("=" * 58)
+    print(f"Reservation ID : {reservation.id}")
+    print(f"Customer       : {reservation.customer_name}")
+    print(f"Email          : {reservation.customer_email}")
+    print(f"Movie          : {movie.title if movie else 'Unknown'}")
+    print(f"Session        : {reservation.session_id}")
+    if session:
+        print(f"Date           : {session.start_time.strftime('%d/%m/%Y at %H:%M')}")
+        print(f"Room           : {session.hall}")
+    print(f"Seats          : {', '.join(reservation.seats)}")
+    print(f"Amount paid    : {reservation.total_amount:.2f} EUR")
+    print(f"Status         : {reservation.status.value}")
+    print("=" * 58)
 
 
-def cancel_customer_reservation(reservation_service: ReservationService) -> None:
-    """Cancel one reservation after verifying its ID and customer email."""
+def cancel_reservation_flow(
+    cinema_service: CinemaService,
+    reservation_service: ReservationService,
+) -> None:
+    """Cancel one reservation by ID and display the released seats."""
     reservation_id = input("\nReservation ID (or press Enter to return): ").strip()
     if not reservation_id:
         return
-    customer_email = input("Booking email: ").strip()
-    if not customer_email:
-        return
 
     try:
-        reservation = reservation_service.cancel_reservation(
-            reservation_id,
-            customer_email,
-        )
+        reservation = reservation_service.cancel_reservation(reservation_id)
     except ValueError as error:
         print(f"\nCancellation failed: {error}")
         return
 
     print(f"\nReservation {reservation.id} cancelled successfully.")
     print(f"Released seats: {', '.join(reservation.seats)}")
+    session = cinema_service.get_session_by_id(reservation.session_id)
+    if session:
+        booked_seats = reservation_service.get_booked_seats_for_session(session.id)
+        print("\nUpdated seat map")
+        print(cinema_service.format_seat_map(session, booked_seats))
 
 
 def handle_choice(
@@ -234,15 +261,15 @@ def handle_choice(
             return False
 
         if choice == "4":
-            book_tickets_flow(cinema_service, reservation_service)
+            book_tickets(cinema_service, reservation_service)
             return False
 
         if choice == "5":
-            consult_customer_reservations(reservation_service)
+            view_reservation_details(cinema_service, reservation_service)
             return False
 
         if choice == "6":
-            cancel_customer_reservation(reservation_service)
+            cancel_reservation_flow(cinema_service, reservation_service)
             return False
 
         print("\nInvalid choice. Please select an option from 1 to 7.")
