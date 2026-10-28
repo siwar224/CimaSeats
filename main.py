@@ -1,6 +1,7 @@
 """Command-line entry point for the CimaSeats application."""
 
 from services import CinemaService, ReservationService
+from models import Reservation
 
 
 MENU_OPTIONS = {
@@ -77,6 +78,81 @@ def browse_movies_and_select_session(
     print("La réservation sera disponible dans une prochaine étape.")
 
 
+def print_confirmation_ticket(reservation: Reservation, movie, session) -> None:
+    """Print a clear terminal ticket for a confirmed reservation."""
+    border = "+" + "=" * 62 + "+"
+    print("\n" + border)
+    print("|" + "CIMASEATS - TICKET DE CONFIRMATION".center(62) + "|")
+    print("|" + "RESERVATION CONFIRMEE".center(62) + "|")
+    print("+" + "-" * 62 + "+")
+    print(f"| Reservation : {reservation.id:<46}|")
+    print(f"| Client      : {reservation.customer_name:<46}|")
+    print(f"| Email       : {reservation.customer_email:<46}|")
+    print(f"| Film        : {movie.title:<46}|")
+    print(f"| Séance      : {session.id:<46}|")
+    print(f"| Date        : {session.start_time.strftime('%d/%m/%Y à %H:%M'):<46}|")
+    print(f"| Salle       : {session.hall:<46}|")
+    print(f"| Sièges      : {', '.join(reservation.seats):<46}|")
+    print(f"| Prix unitaire : {str(session.ticket_price) + ' EUR':<44}|")
+    print(f"| TOTAL       : {str(reservation.total_amount) + ' EUR':<46}|")
+    print("+" + "-" * 62 + "+")
+    print("| Merci pour votre réservation. Bon film !".ljust(63) + "|")
+    print(border)
+
+
+def create_reservation_flow(
+    cinema_service: CinemaService,
+    reservation_service: ReservationService,
+) -> None:
+    """Guide the user through a complete reservation."""
+    print(f"\n{cinema_service.list_movies()}")
+    movie_id = input("\nID du film (ou Entrée pour annuler) : ").strip()
+    if not movie_id:
+        return
+
+    movie = cinema_service.get_movie_by_id(movie_id)
+    if movie is None:
+        print("Film introuvable. La réservation est annulée.")
+        return
+
+    print(f"\nSéances de {movie.title} ({movie.id})")
+    print(cinema_service.list_sessions_for_movie(movie.id))
+    session_id = input("\nID de la séance (ou Entrée pour annuler) : ").strip()
+    if not session_id:
+        return
+
+    session = cinema_service.get_session_by_id(session_id)
+    if session is None or session.movie_id.upper() != movie.id.upper():
+        print("Séance introuvable pour ce film. La réservation est annulée.")
+        return
+
+    booked_seats = reservation_service.get_booked_seats_for_session(session.id)
+    print(f"\n{cinema_service.format_seat_map(session, booked_seats)}")
+
+    customer_name = input("\nNom complet du client : ").strip()
+    customer_email = input("Email du client : ").strip()
+    seat_input = input(
+        "Sièges souhaités, séparés par des virgules (ex: A1,A2) : "
+    )
+    seats = [seat.strip() for seat in seat_input.split(",")]
+
+    try:
+        reservation = reservation_service.create_reservation(
+            session=session,
+            customer_name=customer_name,
+            customer_email=customer_email,
+            seats=seats,
+        )
+    except ValueError as error:
+        print(f"\nRéservation refusée : {error}")
+        return
+
+    print_confirmation_ticket(reservation, movie, session)
+    updated_booked_seats = reservation_service.get_booked_seats_for_session(session.id)
+    print("\nPlan de salle mis à jour")
+    print(cinema_service.format_seat_map(session, updated_booked_seats))
+
+
 def handle_choice(
     choice: str,
     cinema_service: CinemaService,
@@ -86,7 +162,6 @@ def handle_choice(
     actions = {
         "2": cinema_service.list_sessions,
         "3": cinema_service.list_available_seats,
-        "4": reservation_service.create_reservation,
         "5": reservation_service.consult_reservations,
         "6": reservation_service.cancel_reservation,
     }
@@ -97,6 +172,10 @@ def handle_choice(
 
     if choice == "1":
         browse_movies_and_select_session(cinema_service, reservation_service)
+        return False
+
+    if choice == "4":
+        create_reservation_flow(cinema_service, reservation_service)
         return False
 
     action = actions.get(choice)

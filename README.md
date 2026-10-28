@@ -21,4 +21,5 @@ python main.py
 Choose `Films`, enter a movie ID such as `MOV001`, then select one of the
 displayed session IDs. The terminal displays the room layout with `[ ]` for a
 free seat and `[X]` for an occupied seat. You can enter a seat ID to check its
-availability. Creating new reservations is not enabled yet.
+availability. Choose `Reservation` to create a reservation and receive a
+confirmation ticket in the terminal.
