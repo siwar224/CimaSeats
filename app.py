@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from html import escape
+
 import streamlit as st
 
 from services import CinemaService, ReservationService
@@ -27,8 +29,8 @@ def apply_theme() -> None:
         :root {
             --cima-ink: #182033;
             --cima-muted: #667085;
-            --cima-primary: #4f46e5;
-            --cima-primary-dark: #3730a3;
+            --cima-primary: #0b6e99;
+            --cima-primary-dark: #074c6b;
             --cima-surface: #ffffff;
             --cima-background: #f5f7fb;
             --cima-border: #e6eaf2;
@@ -67,13 +69,13 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #171d35 0%, #202b50 100%);
+            background: linear-gradient(180deg, #102a43 0%, #1f4e79 100%);
             border-right: 0;
         }
 
-        [data-testid="stSidebar"] * { color: #f8faff; }
+        [data-testid="stSidebar"] * { color: #f8faff !important; }
         [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
-            color: #b9c3df;
+            color: #b9c3df !important;
         }
         [data-testid="stSidebar"] [role="radiogroup"] {
             gap: 0.35rem;
@@ -109,8 +111,8 @@ def apply_theme() -> None:
             width: 2.1rem;
             height: 2.1rem;
             border-radius: 9px;
-            background: linear-gradient(135deg, #818cf8, #4f46e5);
-            box-shadow: 0 8px 18px rgba(79,70,229,0.34);
+            background: linear-gradient(135deg, #2f80ed, #0b6e99);
+            box-shadow: 0 8px 18px rgba(11,110,153,0.30);
         }
         .page-header { margin: 0.35rem 0 1.4rem; }
         .page-eyebrow {
@@ -130,6 +132,75 @@ def apply_theme() -> None:
         .page-header p { color: var(--cima-muted); margin: 0; font-size: 1rem; }
         .movie-meta, .session-meta { color: var(--cima-muted); font-size: 0.88rem; }
         .movie-description { color: #475467; line-height: 1.55; min-height: 4.5rem; }
+        .movie-card {
+            background: #ffffff;
+            border: 1px solid #d7e1e8;
+            border-radius: 18px;
+            box-shadow: 0 8px 22px rgba(16,42,67,0.06);
+            min-height: 245px;
+            overflow: hidden;
+            padding: 1.25rem;
+            position: relative;
+            transition: box-shadow 160ms ease, transform 160ms ease;
+        }
+        .movie-card:hover {
+            box-shadow: 0 14px 30px rgba(16,42,67,0.12);
+            transform: translateY(-3px);
+        }
+        .movie-card::before {
+            background: linear-gradient(90deg, #0b6e99, #5aa9c5);
+            content: "";
+            height: 5px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .movie-card-top {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .movie-art {
+            align-items: center;
+            background: linear-gradient(135deg, #dff3f7, #b7dbe6);
+            border-radius: 12px;
+            color: #075985;
+            display: flex;
+            font-size: 1.35rem;
+            font-weight: 800;
+            height: 2.65rem;
+            justify-content: center;
+            width: 2.65rem;
+        }
+        .movie-card-id {
+            color: #8293a1;
+            font-family: monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+        }
+        .movie-card h3 {
+            color: var(--cima-ink);
+            font-size: 1.12rem;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.4rem;
+        }
+        .movie-card .movie-meta { margin-bottom: 0.85rem; }
+        .movie-card-description {
+            color: #475467;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            min-height: 4.1rem;
+        }
+        .movie-card-footer {
+            align-items: center;
+            border-top: 1px solid #edf1f4;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.05rem;
+            padding-top: 0.85rem;
+        }
         .badge {
             display: inline-block;
             border-radius: 999px;
@@ -138,13 +209,44 @@ def apply_theme() -> None:
             font-weight: 800;
             letter-spacing: 0.03em;
         }
-        .badge-primary { color: #3730a3; background: #eef2ff; }
+        .badge-primary { color: #0b4f6c; background: #e5f3f8; }
         .badge-success { color: #087f5b; background: #e7f8f1; }
         .badge-danger { color: #b42318; background: #fff0ed; }
+        .action-card {
+            background: #ffffff;
+            border: 1px solid #d7e1e8;
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(16,42,67,0.07);
+            margin: 0.5rem 0 1rem;
+            padding: 1.25rem;
+        }
+        .action-card h3 { margin: 0 0 0.25rem; }
+        .action-card p { color: #667085; margin: 0; }
+        .action-icon {
+            align-items: center;
+            border-radius: 12px;
+            display: inline-flex;
+            font-size: 1.35rem;
+            height: 2.7rem;
+            justify-content: center;
+            margin-bottom: 0.65rem;
+            width: 2.7rem;
+        }
+        .action-icon-search { background: #e5f3f8; }
+        .action-icon-cancel { background: #fff0ed; }
+        .warning-card {
+            background: #fff8f5;
+            border: 1px solid #f6c7bd;
+            border-left: 4px solid #d6453d;
+            border-radius: 12px;
+            color: #7a271a;
+            margin-bottom: 1rem;
+            padding: 0.9rem 1rem;
+        }
         .screen-bar {
-            background: linear-gradient(90deg, #c7d2fe, #818cf8, #c7d2fe);
+            background: linear-gradient(90deg, #b7e4f0, #5aa9c5, #b7e4f0);
             border-radius: 999px;
-            color: #293056;
+            color: #0f3d4c;
             font-size: 0.72rem;
             font-weight: 800;
             letter-spacing: 0.16em;
@@ -156,29 +258,56 @@ def apply_theme() -> None:
         }
         .seat-legend { color: var(--cima-muted); font-size: 0.82rem; margin-top: 0.75rem; }
         .ticket-header {
-            background: linear-gradient(135deg, #252d58, #4f46e5);
+            background: linear-gradient(135deg, #123b5d, #0b6e99);
             border-radius: 16px 16px 0 0;
             color: white;
             padding: 1.35rem 1.5rem;
         }
         .ticket-header h2 { color: white; margin: 0.25rem 0 0; }
-        .ticket-kicker { color: #c7d2fe; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+        .ticket-kicker { color: #b7e4f0; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
         .ticket-body { background: white; border: 1px solid var(--cima-border); border-top: 0; border-radius: 0 0 16px 16px; padding: 1.25rem 1.5rem; }
         .ticket-id { color: var(--cima-muted); font-family: monospace; font-size: 0.85rem; }
         div[data-testid="stButton"] > button {
+            background: #ffffff;
             border-radius: 10px;
-            border: 1px solid var(--cima-border);
+            border: 1px solid #b8c7d3;
+            color: #123b5d !important;
             min-height: 2.55rem;
             font-weight: 650;
         }
-        div[data-testid="stButton"] > button[kind="primary"] {
-            background: linear-gradient(135deg, #6366f1, #4338ca);
-            border: 0;
-            box-shadow: 0 7px 16px rgba(67,56,202,0.2);
+        div[data-testid="stButton"] > button:hover {
+            background: #eaf5f8;
+            border-color: #5aa9c5;
+            color: #075985 !important;
         }
-        div[data-testid="stButton"] > button:disabled {
-            background: #edf0f5;
-            color: #98a2b3;
+        div[data-testid="stButton"] > button[kind="primary"],
+        [data-testid="stBaseButton-primary"] {
+            background: linear-gradient(135deg, #168aad, #075985);
+            border: 0 !important;
+            color: #ffffff !important;
+            box-shadow: 0 7px 16px rgba(7,88,133,0.22);
+        }
+        div[data-testid="stButton"] > button[kind="primary"]:hover,
+        [data-testid="stBaseButton-primary"]:hover {
+            background: linear-gradient(135deg, #0b6e99, #064e70);
+            color: #ffffff !important;
+            transform: translateY(-1px);
+        }
+        div[data-testid="stButton"] > button:disabled,
+        [data-testid="stBaseButton-secondary"]:disabled {
+            background: #e5ebef;
+            border-color: #c8d2d9;
+            color: #5f6f7b !important;
+        }
+        [data-baseweb="select"] > div,
+        [data-baseweb="input"] > div,
+        [data-testid="stTextInput"] input {
+            background: #ffffff;
+            border-color: #b8c7d3;
+            color: #182033 !important;
+        }
+        [data-testid="stTextInput"] input::placeholder {
+            color: #667085 !important;
         }
         [data-testid="stMetric"] {
             background: white;
@@ -383,23 +512,32 @@ def render_movie_cards(movies) -> None:
         columns = st.columns(3)
         for column, movie in zip(columns, movies[start:start + 3]):
             with column:
-                with st.container(border=True):
-                    st.subheader(movie.title)
-                    st.markdown(
-                        f"<div class='movie-meta'>{movie.genre} · "
-                        f"{movie.duration_minutes} min · "
-                        f"{movie.release_year or 'N/A'}</div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f"<div class='movie-description'>{movie.description}</div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f"<span class='badge badge-primary'>"
-                        f"{movie.age_rating or 'All audiences'}</span>",
-                        unsafe_allow_html=True,
-                    )
+                movie_title = escape(movie.title)
+                movie_genre = escape(movie.genre)
+                movie_description = escape(movie.description)
+                movie_rating = escape(movie.age_rating or "All audiences")
+                movie_id = escape(movie.id)
+                movie_initial = escape(movie.title[:1].upper())
+                st.markdown(
+                    f"""
+                    <article class="movie-card">
+                        <div class="movie-card-top">
+                            <div class="movie-art">{movie_initial}</div>
+                            <div class="movie-card-id">{movie_id}</div>
+                        </div>
+                        <h3>{movie_title}</h3>
+                        <div class="movie-meta">{movie_genre} · 
+                            {movie.duration_minutes} min · {movie.release_year or 'N/A'}
+                        </div>
+                        <div class="movie-card-description">{movie_description}</div>
+                        <div class="movie-card-footer">
+                            <span class="badge badge-primary">{movie_rating}</span>
+                            <span class="movie-card-id">CiMaSeat cinema</span>
+                        </div>
+                    </article>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
 
 def render_sessions_page(movies, cinema_service) -> None:
@@ -506,15 +644,38 @@ def render_view_reservation_page(cinema_service, reservation_service) -> None:
         "View a reservation",
         "Enter your reservation ID to review its details and current status.",
     )
-    reservation_id = st.text_input("Reservation ID", placeholder="RES-XXXXXXXX")
-    if st.button("Search reservation", type="primary") and reservation_id.strip():
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div class="action-card">
+                <div class="action-icon action-icon-search">🔎</div>
+                <h3>Find your booking</h3>
+                <p>Use the reservation ID from your confirmation ticket.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        reservation_id = st.text_input(
+            "Reservation ID",
+            placeholder="Example: RES-A1B2C3D4",
+        )
+        search_clicked = st.button(
+            "🔎  Search reservation",
+            type="secondary",
+            use_container_width=True,
+        )
+
+    if search_clicked:
+        if not reservation_id.strip():
+            st.warning("Enter a reservation ID to continue.")
+            return
         try:
             reservation = reservation_service.get_reservation_by_id(reservation_id.strip())
         except JsonFileError as error:
             st.error(f"Unable to load reservations: {error}")
             return
         if reservation is None:
-            st.error("Reservation not found.")
+            st.error("Reservation not found. Check the ID and try again.")
         else:
             render_reservation_details(reservation, cinema_service)
 
@@ -526,8 +687,51 @@ def render_cancel_reservation_page(cinema_service, reservation_service) -> None:
         "Cancel a reservation",
         "Cancellation keeps your reservation history and releases its seats.",
     )
-    reservation_id = st.text_input("Reservation ID", placeholder="RES-XXXXXXXX")
-    if st.button("Cancel reservation", type="primary") and reservation_id.strip():
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stButton"] > button[kind="primary"],
+        [data-testid="stBaseButton-primary"] {
+            background: linear-gradient(135deg, #d6453d, #a92f2b) !important;
+            box-shadow: 0 7px 16px rgba(169,47,43,0.20) !important;
+        }
+        div[data-testid="stButton"] > button[kind="primary"]:hover,
+        [data-testid="stBaseButton-primary"]:hover {
+            background: linear-gradient(135deg, #c03935, #8f2724) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div class="action-card">
+                <div class="action-icon action-icon-cancel">⚠️</div>
+                <h3>Cancel a confirmed booking</h3>
+                <p>This keeps the reservation history and releases the seats.</p>
+            </div>
+            <div class="warning-card">
+                Please make sure the reservation ID is correct. This action cannot
+                be undone once the reservation is cancelled.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        reservation_id = st.text_input(
+            "Reservation ID",
+            placeholder="Example: RES-A1B2C3D4",
+        )
+        cancel_clicked = st.button(
+            "⚠️  Cancel reservation",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if cancel_clicked:
+        if not reservation_id.strip():
+            st.warning("Enter a reservation ID to continue.")
+            return
         try:
             reservation = reservation_service.cancel_reservation(reservation_id.strip())
         except (JsonFileError, ValueError) as error:
