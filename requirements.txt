@@ -1,1 +1,2 @@
 # CimaSeats uses only the Python standard library.
+streamlit==1.66.1

@@ -17,7 +17,13 @@ their movie through `movie_id` in `data/sessions.json`. Rooms are defined in
 ### Requirements
 
 - Python 3.11 or newer
-- No external packages are required; the project uses the Python standard library
+- Streamlit (listed in `requirements.txt`) for the web interface
+
+Install the project dependencies with:
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 ### Start the CLI
 
@@ -60,11 +66,41 @@ The test suite covers movie and session loading, seat-map rendering, JSON
 persistence, invalid seat rejection, reservation cancellation, and malformed
 or missing data files.
 
+## Streamlit UI
+
+The Streamlit entry point is `app.py`. It provides a functional booking screen
+connected to the existing services and JSON data:
+
+- movie selection with movie information;
+- showtime selection;
+- interactive seat map with available, selected, and occupied seats;
+- customer information and total-price calculation;
+- confirmation popup with a booking summary;
+- dedicated `pages/ticket.py` page after confirmation;
+- ticket confirmation saved to `data/reservations.json`.
+
+Start it with:
+
+```bash
+streamlit run app.py
+```
+
+The browser interface and the CLI use the same JSON files and reservation
+business rules.
+
+The fixed sidebar contains the CLI menu and keeps every main workflow
+available from the interface: movies, sessions, seat availability, booking,
+reservation consultation, cancellation, and exit.
+
 ## Project structure
 
 ```text
 CimaSeats/
 ├── main.py
+├── app.py
+├── pages/
+│   ├── home.py
+│   └── ticket.py
 ├── models/
 ├── services/
 ├── utils/
