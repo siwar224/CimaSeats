@@ -19,6 +19,193 @@ MENU_OPTIONS = (
 )
 
 
+def apply_theme() -> None:
+    """Apply the shared visual system used by every Streamlit page."""
+    st.markdown(
+        """
+        <style>
+        :root {
+            --cima-ink: #182033;
+            --cima-muted: #667085;
+            --cima-primary: #4f46e5;
+            --cima-primary-dark: #3730a3;
+            --cima-surface: #ffffff;
+            --cima-background: #f5f7fb;
+            --cima-border: #e6eaf2;
+            --cima-success: #11936f;
+        }
+
+        .stApp {
+            background: var(--cima-background);
+            color: var(--cima-ink);
+        }
+
+        .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {
+            color: var(--cima-ink) !important;
+        }
+        .stApp [data-testid="stMarkdownContainer"] p,
+        .stApp [data-testid="stMarkdownContainer"] li,
+        .stApp [data-testid="stCaptionContainer"],
+        .stApp label {
+            color: #475467 !important;
+        }
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] {
+            background: var(--cima-surface);
+            border-color: var(--cima-border);
+        }
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] h1,
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] h2,
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] h3,
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] h4,
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] p,
+        .stApp [data-testid="stVerticalBlockBorderWrapper"] label {
+            color: var(--cima-ink) !important;
+        }
+        .stApp [data-testid="stVerticalBlockBorderWrapper"]
+        [data-testid="stCaptionContainer"] {
+            color: var(--cima-muted) !important;
+        }
+
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #171d35 0%, #202b50 100%);
+            border-right: 0;
+        }
+
+        [data-testid="stSidebar"] * { color: #f8faff; }
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+            color: #b9c3df;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] {
+            gap: 0.35rem;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label {
+            border-radius: 10px;
+            padding: 0.55rem 0.7rem;
+            transition: background 160ms ease;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label:hover {
+            background: rgba(255,255,255,0.10);
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+            background: #ffffff;
+        }
+        [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) * {
+            color: var(--cima-primary-dark) !important;
+            font-weight: 700;
+        }
+
+        .cima-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin: 0.3rem 0 0.2rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+        .cima-brand-mark {
+            display: grid;
+            place-items: center;
+            width: 2.1rem;
+            height: 2.1rem;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #818cf8, #4f46e5);
+            box-shadow: 0 8px 18px rgba(79,70,229,0.34);
+        }
+        .page-header { margin: 0.35rem 0 1.4rem; }
+        .page-eyebrow {
+            color: var(--cima-primary);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .page-header h1 {
+            color: var(--cima-ink);
+            font-size: clamp(2rem, 4vw, 3.15rem);
+            letter-spacing: -0.055em;
+            line-height: 1.05;
+            margin: 0.25rem 0 0.45rem;
+        }
+        .page-header p { color: var(--cima-muted); margin: 0; font-size: 1rem; }
+        .movie-meta, .session-meta { color: var(--cima-muted); font-size: 0.88rem; }
+        .movie-description { color: #475467; line-height: 1.55; min-height: 4.5rem; }
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 0.22rem 0.6rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+        }
+        .badge-primary { color: #3730a3; background: #eef2ff; }
+        .badge-success { color: #087f5b; background: #e7f8f1; }
+        .badge-danger { color: #b42318; background: #fff0ed; }
+        .screen-bar {
+            background: linear-gradient(90deg, #c7d2fe, #818cf8, #c7d2fe);
+            border-radius: 999px;
+            color: #293056;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            padding: 0.65rem;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 0.8rem auto 1.25rem;
+            max-width: 78%;
+        }
+        .seat-legend { color: var(--cima-muted); font-size: 0.82rem; margin-top: 0.75rem; }
+        .ticket-header {
+            background: linear-gradient(135deg, #252d58, #4f46e5);
+            border-radius: 16px 16px 0 0;
+            color: white;
+            padding: 1.35rem 1.5rem;
+        }
+        .ticket-header h2 { color: white; margin: 0.25rem 0 0; }
+        .ticket-kicker { color: #c7d2fe; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+        .ticket-body { background: white; border: 1px solid var(--cima-border); border-top: 0; border-radius: 0 0 16px 16px; padding: 1.25rem 1.5rem; }
+        .ticket-id { color: var(--cima-muted); font-family: monospace; font-size: 0.85rem; }
+        div[data-testid="stButton"] > button {
+            border-radius: 10px;
+            border: 1px solid var(--cima-border);
+            min-height: 2.55rem;
+            font-weight: 650;
+        }
+        div[data-testid="stButton"] > button[kind="primary"] {
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+            border: 0;
+            box-shadow: 0 7px 16px rgba(67,56,202,0.2);
+        }
+        div[data-testid="stButton"] > button:disabled {
+            background: #edf0f5;
+            color: #98a2b3;
+        }
+        [data-testid="stMetric"] {
+            background: white;
+            border: 1px solid var(--cima-border);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_page_header(eyebrow: str, title: str, description: str) -> None:
+    """Render a consistent modern header for a content page."""
+    st.markdown(
+        f"""
+        <div class="page-header">
+            <div class="page-eyebrow">{eyebrow}</div>
+            <h1>{title}</h1>
+            <p>{description}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 @st.cache_resource
 def get_services() -> tuple[CinemaService, ReservationService]:
     """Return the shared application services used by the Streamlit UI."""
@@ -50,25 +237,35 @@ def format_session_label(session) -> str:
 
 
 def render_booking_ticket(ticket: dict[str, str]) -> None:
-    """Render a compact confirmation ticket after a successful booking."""
-    with st.container(border=True):
-        st.markdown(f"### {ticket['movie_title']}")
-        st.caption(f"Reservation ID: `{ticket['id']}`")
-        details_left, details_right = st.columns(2)
-        with details_left:
-            st.write(f"**Customer:** {ticket['customer_name']}")
-            st.write(f"**Session:** {ticket['session_id']}")
-            st.write(f"**Room:** {ticket['room']}")
-        with details_right:
-            st.write(f"**Date:** {ticket['date']}")
-            st.write(f"**Seats:** {ticket['seats']}")
-            st.write(f"**Total:** {ticket['total_amount']} EUR")
+    """Render a polished ticket card after a successful booking."""
+    st.markdown(
+        f"""
+        <div class="ticket-header">
+            <div class="ticket-kicker">CiMaSeat · Booking confirmed</div>
+            <h2>{ticket['movie_title']}</h2>
+        </div>
+        <div class="ticket-body">
+            <div class="ticket-id">Reservation ID · {ticket['id']}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    details_left, details_right = st.columns(2)
+    with details_left:
+        st.write(f"**Customer**  \n{ticket['customer_name']}")
+        st.write(f"**Session**  \n{ticket['session_id']}")
+        st.write(f"**Room**  \n{ticket['room']}")
+    with details_right:
+        st.write(f"**Date**  \n{ticket['date']}")
+        st.write(f"**Seats**  \n{ticket['seats']}")
+        st.markdown(f"**Total**  \n### {ticket['total_amount']} EUR")
 
 
 @st.dialog("Booking confirmation")
 def show_booking_confirmation(ticket: dict[str, str]) -> None:
     """Show a reservation summary before opening the ticket page."""
     st.success("Your booking has been confirmed.")
+    st.markdown(f"## {ticket['movie_title']}")
     st.write(f"**Movie:** {ticket['movie_title']}")
     st.write(f"**Session:** {ticket['date']} · {ticket['room']}")
     st.write(f"**Seats:** {ticket['seats']}")
@@ -81,12 +278,22 @@ def show_booking_confirmation(ticket: dict[str, str]) -> None:
 
 def render_sidebar() -> str:
     """Render the fixed Streamlit sidebar with the CLI menu options."""
-    st.sidebar.title("🎬 CiMaSeat")
-    st.sidebar.caption("Cinema booking menu")
+    st.sidebar.markdown(
+        """
+        <div class="cima-brand">
+            <span class="cima-brand-mark">🎬</span>
+            <span>CiMaSeat</span>
+        </div>
+        <p style="margin:0 0 1.6rem;">Your cinema, simplified.</p>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown("<b>MENU</b>", unsafe_allow_html=True)
     return st.sidebar.radio(
         "Menu",
         MENU_OPTIONS,
         key="sidebar_menu",
+        label_visibility="collapsed",
     )
 
 
@@ -113,8 +320,7 @@ def render_seat_map(
 
     st.markdown("### Select your seats" if interactive else "### Seat availability")
     st.markdown(
-        "<div style='background:#222;border-radius:8px;padding:10px;"
-        "text-align:center;margin:12px 0 22px;'>SCREEN</div>",
+        "<div class='screen-bar'>Screen</div>",
         unsafe_allow_html=True,
     )
 
@@ -142,6 +348,7 @@ def render_seat_map(
                         button_label,
                         key=f"seat-{session.id}-{seat_id}",
                         disabled=is_booked,
+                        type="primary" if is_selected else "secondary",
                         use_container_width=True,
                     ):
                         if is_selected:
@@ -157,32 +364,51 @@ def render_seat_map(
                         unsafe_allow_html=True,
                     )
 
-    st.caption("Available: [ ] · Selected: ✓ · Occupied: X")
+    st.markdown(
+        "<div class='seat-legend'>Available · <b>Selected</b> ✓ · "
+        "<b>Occupied</b> X</div>",
+        unsafe_allow_html=True,
+    )
     return selected_seats
 
 
 def render_movie_cards(movies) -> None:
     """Display movies as presentation cards instead of a data table."""
-    st.title("🎬 Movies")
-    st.caption(f"{len(movies)} movies available")
+    render_page_header(
+        "Discover",
+        "Find your next story",
+        f"Explore {len(movies)} movies currently playing at CiMaSeat.",
+    )
     for start in range(0, len(movies), 3):
         columns = st.columns(3)
         for column, movie in zip(columns, movies[start:start + 3]):
             with column:
                 with st.container(border=True):
                     st.subheader(movie.title)
-                    st.caption(
-                        f"{movie.genre} · {movie.duration_minutes} min · "
-                        f"{movie.release_year or 'N/A'}"
+                    st.markdown(
+                        f"<div class='movie-meta'>{movie.genre} · "
+                        f"{movie.duration_minutes} min · "
+                        f"{movie.release_year or 'N/A'}</div>",
+                        unsafe_allow_html=True,
                     )
-                    st.write(movie.description)
-                    if movie.age_rating:
-                        st.markdown(f"**Age rating:** {movie.age_rating}")
+                    st.markdown(
+                        f"<div class='movie-description'>{movie.description}</div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f"<span class='badge badge-primary'>"
+                        f"{movie.age_rating or 'All audiences'}</span>",
+                        unsafe_allow_html=True,
+                    )
 
 
 def render_sessions_page(movies, cinema_service) -> None:
     """Display sessions filtered by a selected movie."""
-    st.title("🕒 Sessions")
+    render_page_header(
+        "Plan your visit",
+        "Choose a session",
+        "Select a movie to see its available showtimes and ticket prices.",
+    )
     movie_options = {f"{movie.title} · {movie.id}": movie for movie in movies}
     selected_label = st.selectbox("Choose a movie", list(movie_options))
     selected_movie = movie_options[selected_label]
@@ -192,15 +418,27 @@ def render_sessions_page(movies, cinema_service) -> None:
         with st.container(border=True):
             left, right = st.columns([2, 1])
             with left:
-                st.subheader(format_session_label(session))
-                st.write(f"Session ID: `{session.id}`")
+                st.markdown(
+                    f"<span class='badge badge-primary'>{session.id}</span>",
+                    unsafe_allow_html=True,
+                )
+                st.subheader(session.start_time.strftime("%A %d %B · %H:%M"))
+                st.markdown(
+                    f"<div class='session-meta'>📍 {session.hall} · "
+                    f"{session.rows} rows · {session.seats_per_row} seats per row</div>",
+                    unsafe_allow_html=True,
+                )
             with right:
                 st.metric("Ticket price", f"{session.ticket_price:.2f} EUR")
 
 
 def render_available_seats_page(movies, cinema_service, reservation_service) -> None:
     """Display the current seat availability for a selected session."""
-    st.title("💺 Available Seats")
+    render_page_header(
+        "Live availability",
+        "Find your seat",
+        "Choose a session to see which seats are available in real time.",
+    )
     movie_options = {f"{movie.title} · {movie.id}": movie for movie in movies}
     selected_movie = movie_options[st.selectbox("Choose a movie", list(movie_options))]
     sessions = cinema_service.get_sessions_for_movie(selected_movie.id)
@@ -215,6 +453,14 @@ def render_available_seats_page(movies, cinema_service, reservation_service) -> 
     selected_session = next(
         session for session in sessions if session.id == selected_session_id
     )
+    room = cinema_service.get_room_for_session(selected_session)
+    booked_count = len(reservation_service.get_booked_seats_for_session(selected_session.id))
+    total_seats = room.rows * room.seats_per_row
+    available_count = total_seats - booked_count
+    metric_left, metric_center, metric_right = st.columns(3)
+    metric_left.metric("Available", available_count)
+    metric_center.metric("Occupied", booked_count)
+    metric_right.metric("Capacity", total_seats)
     render_seat_map(
         cinema_service,
         reservation_service,
@@ -234,19 +480,32 @@ def render_reservation_details(
         st.error("The movie or session linked to this reservation is unavailable.")
         return
 
+    status_class = "badge-success" if reservation.is_active else "badge-danger"
+    st.markdown(
+        f"<span class='badge {status_class}'>{reservation.status.value.title()}</span>",
+        unsafe_allow_html=True,
+    )
     with st.container(border=True):
         st.subheader(movie.title)
-        st.write(f"**Reservation ID:** `{reservation.id}`")
-        st.write(f"**Customer:** {reservation.customer_name}")
-        st.write(f"**Session:** {format_session_label(session)}")
-        st.write(f"**Seats:** {', '.join(reservation.seats)}")
-        st.write(f"**Amount paid:** {reservation.total_amount:.2f} EUR")
-        st.write(f"**Status:** {reservation.status.value.title()}")
+        st.caption(f"Reservation ID · {reservation.id}")
+        detail_left, detail_center, detail_right = st.columns(3)
+        with detail_left:
+            st.markdown(f"**Customer**  \n{reservation.customer_name}")
+            st.markdown(f"**Seats**  \n{', '.join(reservation.seats)}")
+        with detail_center:
+            st.markdown(f"**Session**  \n{format_session_label(session)}")
+            st.markdown(f"**Room**  \n{session.hall}")
+        with detail_right:
+            st.markdown(f"**Amount paid**  \n### {reservation.total_amount:.2f} EUR")
 
 
 def render_view_reservation_page(cinema_service, reservation_service) -> None:
     """Find and display one reservation by its identifier."""
-    st.title("🔎 View Reservation")
+    render_page_header(
+        "Your bookings",
+        "View a reservation",
+        "Enter your reservation ID to review its details and current status.",
+    )
     reservation_id = st.text_input("Reservation ID", placeholder="RES-XXXXXXXX")
     if st.button("Search reservation", type="primary") and reservation_id.strip():
         try:
@@ -262,7 +521,11 @@ def render_view_reservation_page(cinema_service, reservation_service) -> None:
 
 def render_cancel_reservation_page(cinema_service, reservation_service) -> None:
     """Cancel a confirmed reservation without deleting its history."""
-    st.title("↩️ Cancel Reservation")
+    render_page_header(
+        "Manage booking",
+        "Cancel a reservation",
+        "Cancellation keeps your reservation history and releases its seats.",
+    )
     reservation_id = st.text_input("Reservation ID", placeholder="RES-XXXXXXXX")
     if st.button("Cancel reservation", type="primary") and reservation_id.strip():
         try:
@@ -276,23 +539,43 @@ def render_cancel_reservation_page(cinema_service, reservation_service) -> None:
 
 def render_booking_page(movies, cinema_service, reservation_service) -> None:
     """Render the interactive movie booking workflow."""
-    st.title("🎬 CiMaSeat")
-    st.caption("Book your favorite movie in a few clicks.")
+    render_page_header(
+        "Book in a few clicks",
+        "Your cinema night starts here",
+        "Choose a movie, pick a showtime, and reserve your favorite seats.",
+    )
 
     if st.session_state.pop("show_confirmation", False):
         show_booking_confirmation(st.session_state.last_ticket)
 
     st.markdown("### Choose a movie")
     movie_options = {f"{movie.title} · {movie.id}": movie for movie in movies}
-    selected_movie_label = st.selectbox("Movie", list(movie_options), label_visibility="collapsed")
+    selected_movie_label = st.selectbox(
+        "Movie",
+        list(movie_options),
+        label_visibility="collapsed",
+    )
     selected_movie = movie_options[selected_movie_label]
 
-    st.caption(
-        f"{selected_movie.genre} · {selected_movie.duration_minutes} min · "
-        f"{selected_movie.release_year or 'N/A'} · "
-        f"{selected_movie.age_rating or 'N/A'}"
-    )
-    st.write(selected_movie.description)
+    with st.container(border=True):
+        movie_left, movie_right = st.columns([2, 1])
+        with movie_left:
+            st.subheader(selected_movie.title)
+            st.markdown(
+                f"<div class='movie-meta'>{selected_movie.genre} · "
+                f"{selected_movie.duration_minutes} min · "
+                f"{selected_movie.release_year or 'N/A'}</div>",
+                unsafe_allow_html=True,
+            )
+            st.write(selected_movie.description)
+        with movie_right:
+            st.markdown(
+                f"<span class='badge badge-primary'>"
+                f"{selected_movie.age_rating or 'All audiences'}</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("\n")
+            st.caption("Selected movie")
 
     sessions = cinema_service.get_sessions_for_movie(selected_movie.id)
     if not sessions:
@@ -323,7 +606,7 @@ def render_booking_page(movies, cinema_service, reservation_service) -> None:
     summary_left, summary_right = st.columns([2, 1])
     with summary_left:
         selected_label = ", ".join(sorted(selected_seats)) or "None"
-        st.write(f"**Selected seats:** {selected_label}")
+        st.markdown(f"**Selected seats**  \n{selected_label}")
     with summary_right:
         total_amount = selected_session.ticket_price * len(selected_seats)
         st.metric("Total", f"{total_amount:.2f} EUR")
@@ -375,12 +658,17 @@ def main() -> None:
         page_icon="🎬",
         layout="wide",
     )
+    apply_theme()
 
     selected_menu = render_sidebar()
     cinema_service, reservation_service = get_services()
 
     if selected_menu == "Exit":
-        st.title("See you soon 👋")
+        render_page_header(
+            "CiMaSeat",
+            "See you soon 👋",
+            "Your next cinema experience is only a few clicks away.",
+        )
         st.info("Thank you for visiting CiMaSeat.")
         return
 
