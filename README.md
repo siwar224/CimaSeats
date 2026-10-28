@@ -14,6 +14,20 @@ Try the deployed Streamlit application:
 
 **[Open CiMaSeat on Streamlit](https://cimaseats-pro.streamlit.app/)**
 
+## Screenshots
+
+### Movie catalogue
+
+![CiMaSeat movie catalogue](docs/screenshots/movies-catalog.png)
+
+### Booking interface
+
+![CiMaSeat booking overview](docs/screenshots/booking-overview.png)
+
+### Interactive seat selection
+
+![CiMaSeat interactive seat selection](docs/screenshots/seat-selection.png)
+
 ## Features
 
 ### Booking workflow
