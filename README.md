@@ -60,6 +60,15 @@ The test suite covers movie and session loading, seat-map rendering, JSON
 persistence, invalid seat rejection, reservation cancellation, and malformed
 or missing data files.
 
+## Streamlit UI
+
+The Streamlit entry point is prepared in `app.py` and currently contains no
+visible UI components. Start it with:
+
+```bash
+streamlit run app.py
+```
+
 ## Project structure
 
 ```text
