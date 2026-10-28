@@ -8,6 +8,9 @@ from services import CinemaService, ReservationService
 from utils.file_handler import JsonFileError
 
 
+TICKET_PAGE = None
+
+
 @st.cache_resource
 def get_services() -> tuple[CinemaService, ReservationService]:
     """Return the shared application services used by the Streamlit UI."""
@@ -41,7 +44,6 @@ def format_session_label(session) -> str:
 def render_booking_ticket(ticket: dict[str, str]) -> None:
     """Render a compact confirmation ticket after a successful booking."""
     with st.container(border=True):
-        st.success("Booking confirmed")
         st.markdown(f"### {ticket['movie_title']}")
         st.caption(f"Reservation ID: `{ticket['id']}`")
         details_left, details_right = st.columns(2)
@@ -53,6 +55,20 @@ def render_booking_ticket(ticket: dict[str, str]) -> None:
             st.write(f"**Date:** {ticket['date']}")
             st.write(f"**Seats:** {ticket['seats']}")
             st.write(f"**Total:** {ticket['total_amount']} EUR")
+
+
+@st.dialog("Booking confirmation")
+def show_booking_confirmation(ticket: dict[str, str]) -> None:
+    """Show a reservation summary before opening the ticket page."""
+    st.success("Your booking has been confirmed.")
+    st.write(f"**Movie:** {ticket['movie_title']}")
+    st.write(f"**Session:** {ticket['date']} · {ticket['room']}")
+    st.write(f"**Seats:** {ticket['seats']}")
+    st.write(f"**Total:** {ticket['total_amount']} EUR")
+    st.caption("Open the next page to view and keep your complete ticket.")
+
+    if st.button("View my ticket", type="primary", use_container_width=True):
+        st.switch_page(TICKET_PAGE)
 
 
 def render_seat_map(cinema_service, reservation_service, session) -> set[str]:
@@ -129,11 +145,8 @@ def main() -> None:
         st.info("No movies are currently available.")
         return
 
-    if "last_ticket" in st.session_state:
-        render_booking_ticket(st.session_state.last_ticket)
-        if st.button("Dismiss confirmation"):
-            del st.session_state["last_ticket"]
-            st.rerun()
+    if st.session_state.pop("show_confirmation", False):
+        show_booking_confirmation(st.session_state.last_ticket)
 
     st.markdown("### Choose a movie")
     movie_options = {f"{movie.title} · {movie.id}": movie for movie in movies}
@@ -218,8 +231,33 @@ def main() -> None:
                     "total_amount": str(reservation.total_amount),
                 }
                 st.session_state.selected_seats = set()
+                st.session_state.show_confirmation = True
                 st.rerun()
 
 
+def run_streamlit_app() -> None:
+    """Register the application pages and start Streamlit navigation."""
+    global TICKET_PAGE
+
+    booking_page = st.Page(
+        main,
+        title="Book tickets",
+        icon="🎬",
+        url_path="",
+        default=True,
+    )
+    TICKET_PAGE = st.Page(
+        "pages/ticket.py",
+        title="Your ticket",
+        icon="🎟️",
+        url_path="ticket",
+    )
+    navigation = st.navigation(
+        [booking_page, TICKET_PAGE],
+        position="hidden",
+    )
+    navigation.run()
+
+
 if __name__ == "__main__":
-    main()
+    run_streamlit_app()

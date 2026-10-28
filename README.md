@@ -75,6 +75,8 @@ connected to the existing services and JSON data:
 - showtime selection;
 - interactive seat map with available, selected, and occupied seats;
 - customer information and total-price calculation;
+- confirmation popup with a booking summary;
+- dedicated `pages/ticket.py` page after confirmation;
 - ticket confirmation saved to `data/reservations.json`.
 
 Start it with:
