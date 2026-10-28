@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from app import render_booking_ticket
+from app import render_booking_ticket, render_sidebar
 
 
 st.set_page_config(
@@ -10,6 +10,10 @@ st.set_page_config(
     page_icon="🎟️",
     layout="wide",
 )
+
+selected_menu = render_sidebar()
+if selected_menu != "Book Tickets":
+    st.switch_page("pages/home.py")
 
 st.title("🎟️ Your ticket")
 st.caption("Keep this reservation ID for consultation or cancellation.")

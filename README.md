@@ -88,6 +88,10 @@ streamlit run app.py
 The browser interface and the CLI use the same JSON files and reservation
 business rules.
 
+The fixed sidebar contains the CLI menu and keeps every main workflow
+available from the interface: movies, sessions, seat availability, booking,
+reservation consultation, cancellation, and exit.
+
 ## Project structure
 
 ```text
