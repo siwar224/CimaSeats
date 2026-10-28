@@ -1,0 +1,6 @@
+[
+  {"id": "Hall 1", "name": "Hall 1 - Grande salle", "rows": 8, "seats_per_row": 12},
+  {"id": "Hall 2", "name": "Hall 2 - Salle premium", "rows": 8, "seats_per_row": 12},
+  {"id": "Hall 3", "name": "Hall 3 - Salle standard", "rows": 7, "seats_per_row": 10},
+  {"id": "Hall 4", "name": "Hall 4 - Salle familiale", "rows": 6, "seats_per_row": 10}
+]

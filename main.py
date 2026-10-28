@@ -28,7 +28,10 @@ def display_menu() -> None:
         print(f"{number}. {label}")
 
 
-def browse_movies_and_select_session(cinema_service: CinemaService) -> None:
+def browse_movies_and_select_session(
+    cinema_service: CinemaService,
+    reservation_service: ReservationService,
+) -> None:
     """Display movies, select a movie, then display and select its sessions."""
     print(f"\n{cinema_service.list_movies()}")
     movie_id = input("\nEntrez l'ID du film (ou Entrée pour revenir au menu) : ").strip()
@@ -57,6 +60,15 @@ def browse_movies_and_select_session(cinema_service: CinemaService) -> None:
         print("Séance introuvable pour le film sélectionné.")
         return
 
+    booked_seats = reservation_service.get_booked_seats_for_session(selected_session.id)
+    print(f"\n{cinema_service.format_seat_map(selected_session, booked_seats)}")
+
+    seat_to_check = input(
+        "\nEntrez un numéro de siège à vérifier (ou Entrée pour revenir au menu) : "
+    ).strip()
+    if seat_to_check:
+        print(cinema_service.check_seat(selected_session, seat_to_check, booked_seats))
+
     print(
         f"Séance sélectionnée : {selected_session.id} - "
         f"{selected_session.start_time.strftime('%d/%m/%Y à %H:%M')} - "
@@ -84,7 +96,7 @@ def handle_choice(
         return True
 
     if choice == "1":
-        browse_movies_and_select_session(cinema_service)
+        browse_movies_and_select_session(cinema_service, reservation_service)
         return False
 
     action = actions.get(choice)

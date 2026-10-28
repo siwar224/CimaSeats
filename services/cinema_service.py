@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from models import Movie, Session
+from models import Movie, Room, Session
 from utils.file_handler import read_json
 
 
@@ -18,9 +18,11 @@ class CinemaService:
         self,
         movies_path: str | Path = DATA_DIRECTORY / "movies.json",
         sessions_path: str | Path = DATA_DIRECTORY / "sessions.json",
+        rooms_path: str | Path = DATA_DIRECTORY / "rooms.json",
     ) -> None:
         self.movies_path = Path(movies_path)
         self.sessions_path = Path(sessions_path)
+        self.rooms_path = Path(rooms_path)
 
     def get_movies(self) -> list[Movie]:
         """Load all active movies from the JSON data file."""
@@ -48,6 +50,67 @@ class CinemaService:
             for session in self.get_sessions()
             if session.movie_id.upper() == searched_id
         ]
+
+    def get_rooms(self) -> list[Room]:
+        """Load all cinema rooms from the JSON data file."""
+        return [Room.from_dict(item) for item in read_json(self.rooms_path)]
+
+    def get_room_for_session(self, session: Session) -> Room:
+        """Return the room linked to a session through its hall identifier."""
+        room = next(
+            (room for room in self.get_rooms() if room.id == session.hall),
+            None,
+        )
+        if room is None:
+            raise ValueError(f"Room not found for session hall: {session.hall}")
+        if room.rows != session.rows or room.seats_per_row != session.seats_per_row:
+            raise ValueError(f"Room layout does not match session {session.id}")
+        return room
+
+    def format_seat_map(self, session: Session, booked_seats: set[str]) -> str:
+        """Render a clear terminal seat map for a session."""
+        room = self.get_room_for_session(session)
+        normalised_booked_seats = {seat.upper().strip() for seat in booked_seats}
+        invalid_seats = normalised_booked_seats.difference(room.all_seats)
+        if invalid_seats:
+            raise ValueError(f"Invalid booked seats for {session.id}: {sorted(invalid_seats)}")
+
+        seat_numbers = " ".join(f"{number:>3}" for number in range(1, room.seats_per_row + 1))
+        lines = [
+            f"Salle : {room.name} ({room.capacity} places)",
+            f"Séance : {session.id} | {session.start_time.strftime('%d/%m/%Y à %H:%M')} | "
+            f"Prix : {session.ticket_price:.2f} EUR",
+            "",
+            f"      {seat_numbers}",
+        ]
+        for row_number in range(1, room.rows + 1):
+            row_name = room.row_label(row_number)
+            seats = []
+            for seat_number in range(1, room.seats_per_row + 1):
+                seat_id = f"{row_name}{seat_number}"
+                marker = "[X]" if seat_id in normalised_booked_seats else "[ ]"
+                seats.append(f"{marker:>3}")
+            lines.append(f"  {row_name}   " + " ".join(seats))
+
+        available_count = room.capacity - len(normalised_booked_seats)
+        lines.extend(
+            [
+                "",
+                "Légende : [ ] Libre    [X] Occupée",
+                f"Places libres : {available_count}/{room.capacity}",
+            ]
+        )
+        return "\n".join(lines)
+
+    def check_seat(self, session: Session, seat: str, booked_seats: set[str]) -> str:
+        """Validate a seat number and report whether it is free or occupied."""
+        room = self.get_room_for_session(session)
+        normalised_seat = seat.strip().upper()
+        if not room.is_valid_seat(normalised_seat):
+            return f"Le siège {normalised_seat or '(vide)'} n'existe pas dans cette salle."
+        if normalised_seat in {item.upper() for item in booked_seats}:
+            return f"Le siège {normalised_seat} est occupé pour la séance {session.id}."
+        return f"Le siège {normalised_seat} est libre pour la séance {session.id}."
 
     def get_session_by_id(self, session_id: str) -> Session | None:
         """Return a session by ID, ignoring surrounding spaces and case."""
