@@ -93,6 +93,10 @@ business rules.
 ```text
 CimaSeats/
 ├── main.py
+├── app.py
+├── pages/
+│   ├── home.py
+│   └── ticket.py
 ├── models/
 ├── services/
 ├── utils/

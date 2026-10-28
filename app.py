@@ -8,9 +8,6 @@ from services import CinemaService, ReservationService
 from utils.file_handler import JsonFileError
 
 
-TICKET_PAGE = None
-
-
 @st.cache_resource
 def get_services() -> tuple[CinemaService, ReservationService]:
     """Return the shared application services used by the Streamlit UI."""
@@ -68,7 +65,7 @@ def show_booking_confirmation(ticket: dict[str, str]) -> None:
     st.caption("Open the next page to view and keep your complete ticket.")
 
     if st.button("View my ticket", type="primary", use_container_width=True):
-        st.switch_page(TICKET_PAGE)
+        st.switch_page("pages/ticket.py")
 
 
 def render_seat_map(cinema_service, reservation_service, session) -> set[str]:
@@ -237,23 +234,21 @@ def main() -> None:
 
 def run_streamlit_app() -> None:
     """Register the application pages and start Streamlit navigation."""
-    global TICKET_PAGE
-
     booking_page = st.Page(
-        main,
+        "pages/home.py",
         title="Book tickets",
         icon="🎬",
         url_path="",
         default=True,
     )
-    TICKET_PAGE = st.Page(
+    ticket_page = st.Page(
         "pages/ticket.py",
         title="Your ticket",
         icon="🎟️",
         url_path="ticket",
     )
     navigation = st.navigation(
-        [booking_page, TICKET_PAGE],
+        [booking_page, ticket_page],
         position="hidden",
     )
     navigation.run()
