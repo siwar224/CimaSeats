@@ -2,6 +2,7 @@
 
 from services import CinemaService, ReservationService
 from models import Reservation
+from utils.file_handler import JsonFileError
 
 
 MENU_OPTIONS = {
@@ -62,20 +63,55 @@ def browse_movies_and_select_session(
         return
 
     booked_seats = reservation_service.get_booked_seats_for_session(selected_session.id)
-    print(f"\n{cinema_service.format_seat_map(selected_session, booked_seats)}")
-
-    seat_to_check = input(
-        "\nEntrez un numéro de siège à vérifier (ou Entrée pour revenir au menu) : "
-    ).strip()
-    if seat_to_check:
-        print(cinema_service.check_seat(selected_session, seat_to_check, booked_seats))
-
-    print(
-        f"Séance sélectionnée : {selected_session.id} - "
-        f"{selected_session.start_time.strftime('%d/%m/%Y à %H:%M')} - "
-        f"{selected_session.hall} - {selected_session.ticket_price:.2f} EUR"
+    complete_reservation(
+        cinema_service,
+        reservation_service,
+        movie,
+        selected_session,
+        booked_seats,
     )
-    print("La réservation sera disponible dans une prochaine étape.")
+
+
+def complete_reservation(
+    cinema_service: CinemaService,
+    reservation_service: ReservationService,
+    movie,
+    session,
+    booked_seats: set[str],
+) -> None:
+    """Collect customer details and create a reservation for a selected session."""
+    print(f"\n{cinema_service.format_seat_map(session, booked_seats)}")
+
+    customer_name = input("\nNom complet du client (ou Entrée pour annuler) : ").strip()
+    if not customer_name:
+        print("Réservation annulée.")
+        return
+
+    customer_email = input("Email du client (ou Entrée pour annuler) : ").strip()
+    if not customer_email:
+        print("Réservation annulée.")
+        return
+
+    seat_input = input(
+        "Sièges souhaités, séparés par des virgules (ex: A1,A2) : "
+    )
+    seats = [seat.strip() for seat in seat_input.split(",")]
+
+    try:
+        reservation = reservation_service.create_reservation(
+            session=session,
+            customer_name=customer_name,
+            customer_email=customer_email,
+            seats=seats,
+        )
+    except ValueError as error:
+        print(f"\nRéservation refusée : {error}")
+        return
+
+    print_confirmation_ticket(reservation, movie, session)
+    updated_booked_seats = reservation_service.get_booked_seats_for_session(session.id)
+    print("\nPlan de salle mis à jour")
+    print(cinema_service.format_seat_map(session, updated_booked_seats))
 
 
 def print_confirmation_ticket(reservation: Reservation, movie, session) -> None:
@@ -100,57 +136,14 @@ def print_confirmation_ticket(reservation: Reservation, movie, session) -> None:
     print(border)
 
 
-def create_reservation_flow(
-    cinema_service: CinemaService,
-    reservation_service: ReservationService,
-) -> None:
-    """Guide the user through a complete reservation."""
-    print(f"\n{cinema_service.list_movies()}")
-    movie_id = input("\nID du film (ou Entrée pour annuler) : ").strip()
-    if not movie_id:
+def consult_customer_reservations(reservation_service: ReservationService) -> None:
+    """Display reservations belonging to the customer identified by email."""
+    customer_email = input(
+        "\nEmail utilisé pour la réservation (ou Entrée pour revenir) : "
+    ).strip()
+    if not customer_email:
         return
-
-    movie = cinema_service.get_movie_by_id(movie_id)
-    if movie is None:
-        print("Film introuvable. La réservation est annulée.")
-        return
-
-    print(f"\nSéances de {movie.title} ({movie.id})")
-    print(cinema_service.list_sessions_for_movie(movie.id))
-    session_id = input("\nID de la séance (ou Entrée pour annuler) : ").strip()
-    if not session_id:
-        return
-
-    session = cinema_service.get_session_by_id(session_id)
-    if session is None or session.movie_id.upper() != movie.id.upper():
-        print("Séance introuvable pour ce film. La réservation est annulée.")
-        return
-
-    booked_seats = reservation_service.get_booked_seats_for_session(session.id)
-    print(f"\n{cinema_service.format_seat_map(session, booked_seats)}")
-
-    customer_name = input("\nNom complet du client : ").strip()
-    customer_email = input("Email du client : ").strip()
-    seat_input = input(
-        "Sièges souhaités, séparés par des virgules (ex: A1,A2) : "
-    )
-    seats = [seat.strip() for seat in seat_input.split(",")]
-
-    try:
-        reservation = reservation_service.create_reservation(
-            session=session,
-            customer_name=customer_name,
-            customer_email=customer_email,
-            seats=seats,
-        )
-    except ValueError as error:
-        print(f"\nRéservation refusée : {error}")
-        return
-
-    print_confirmation_ticket(reservation, movie, session)
-    updated_booked_seats = reservation_service.get_booked_seats_for_session(session.id)
-    print("\nPlan de salle mis à jour")
-    print(cinema_service.format_seat_map(session, updated_booked_seats))
+    print(f"\n{reservation_service.format_customer_reservations(customer_email)}")
 
 
 def handle_choice(
@@ -166,25 +159,30 @@ def handle_choice(
         "6": reservation_service.cancel_reservation,
     }
 
-    if choice == "7":
-        print("\nMerci d'avoir utilisé CiMaSeat. À bientôt !")
-        return True
+    try:
+        if choice == "7":
+            print("\nMerci d'avoir utilisé CiMaSeat. À bientôt !")
+            return True
 
-    if choice == "1":
-        browse_movies_and_select_session(cinema_service, reservation_service)
+        if choice == "1":
+            browse_movies_and_select_session(cinema_service, reservation_service)
+            return False
+
+        if choice == "4":
+            consult_customer_reservations(reservation_service)
+            return False
+
+        action = actions.get(choice)
+        if action is None:
+            print("\nChoix invalide. Veuillez sélectionner une option entre 1 et 7.")
+            return False
+
+        print(f"\n{action()}")
         return False
-
-    if choice == "4":
-        create_reservation_flow(cinema_service, reservation_service)
+    except JsonFileError as error:
+        print(f"\nErreur de données : {error}")
+        print("Vérifiez le fichier JSON concerné puis réessayez.")
         return False
-
-    action = actions.get(choice)
-    if action is None:
-        print("\nChoix invalide. Veuillez sélectionner une option entre 1 et 7.")
-        return False
-
-    print(f"\n{action()}")
-    return False
 
 
 def main() -> None:

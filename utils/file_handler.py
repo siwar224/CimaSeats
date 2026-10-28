@@ -7,17 +7,41 @@ from pathlib import Path
 from typing import Any
 
 
-def read_json(path: str | Path) -> Any:
-    """Read and decode a UTF-8 JSON file."""
+class JsonFileError(Exception):
+    """Raised when a JSON data file is missing, invalid, or unusable."""
+
+
+def read_json(path: str | Path, default: Any | None = None) -> Any:
+    """Read a UTF-8 JSON file and create a missing file with a default value."""
     file_path = Path(path)
-    with file_path.open("r", encoding="utf-8") as file:
-        return json.load(file)
+    if not file_path.exists():
+        initial_value = [] if default is None else default
+        write_json(file_path, initial_value)
+        return initial_value
+
+    try:
+        with file_path.open("r", encoding="utf-8") as file:
+            return json.load(file)
+    except json.JSONDecodeError as error:
+        raise JsonFileError(
+            f"Le fichier '{file_path.name}' contient un JSON malformé "
+            f"(ligne {error.lineno}, colonne {error.colno})."
+        ) from error
+    except OSError as error:
+        raise JsonFileError(
+            f"Impossible de lire le fichier '{file_path.name}'."
+        ) from error
 
 
 def write_json(path: str | Path, data: Any) -> None:
     """Write data as formatted UTF-8 JSON."""
     file_path = Path(path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    with file_path.open("w", encoding="utf-8") as file:
-        json.dump(data, file, indent=2, ensure_ascii=False)
-        file.write("\n")
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, ensure_ascii=False)
+            file.write("\n")
+    except (OSError, TypeError, ValueError) as error:
+        raise JsonFileError(
+            f"Impossible d'enregistrer les données dans '{file_path.name}'."
+        ) from error

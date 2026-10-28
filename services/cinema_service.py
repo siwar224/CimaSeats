@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from models import Movie, Room, Session
-from utils.file_handler import read_json
+from utils.file_handler import JsonFileError, read_json
 
 
 DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data"
@@ -26,7 +26,15 @@ class CinemaService:
 
     def get_movies(self) -> list[Movie]:
         """Load all active movies from the JSON data file."""
-        movies = [Movie.from_dict(item) for item in read_json(self.movies_path)]
+        data = read_json(self.movies_path, default=[])
+        if not isinstance(data, list):
+            raise JsonFileError("Le fichier movies.json doit contenir une liste JSON.")
+        try:
+            movies = [Movie.from_dict(item) for item in data]
+        except (KeyError, TypeError, ValueError) as error:
+            raise JsonFileError(
+                f"Le fichier '{self.movies_path.name}' contient un film invalide : {error}"
+            ) from error
         return [movie for movie in movies if movie.is_active]
 
     def get_movie_by_id(self, movie_id: str) -> Movie | None:
@@ -39,7 +47,15 @@ class CinemaService:
 
     def get_sessions(self) -> list[Session]:
         """Load all sessions from the JSON data file in chronological order."""
-        sessions = [Session.from_dict(item) for item in read_json(self.sessions_path)]
+        data = read_json(self.sessions_path, default=[])
+        if not isinstance(data, list):
+            raise JsonFileError("Le fichier sessions.json doit contenir une liste JSON.")
+        try:
+            sessions = [Session.from_dict(item) for item in data]
+        except (KeyError, TypeError, ValueError) as error:
+            raise JsonFileError(
+                f"Le fichier '{self.sessions_path.name}' contient une séance invalide : {error}"
+            ) from error
         return sorted(sessions, key=lambda session: session.start_time)
 
     def get_sessions_for_movie(self, movie_id: str) -> list[Session]:
@@ -53,7 +69,15 @@ class CinemaService:
 
     def get_rooms(self) -> list[Room]:
         """Load all cinema rooms from the JSON data file."""
-        return [Room.from_dict(item) for item in read_json(self.rooms_path)]
+        data = read_json(self.rooms_path, default=[])
+        if not isinstance(data, list):
+            raise JsonFileError("Le fichier rooms.json doit contenir une liste JSON.")
+        try:
+            return [Room.from_dict(item) for item in data]
+        except (KeyError, TypeError, ValueError) as error:
+            raise JsonFileError(
+                f"Le fichier '{self.rooms_path.name}' contient une salle invalide : {error}"
+            ) from error
 
     def get_room_for_session(self, session: Session) -> Room:
         """Return the room linked to a session through its hall identifier."""

@@ -1,12 +1,143 @@
 [
-  {"id": "RES001", "session_id": "SES001", "customer_name": "Alice Martin", "customer_email": "alice@example.com", "seats": ["A1", "A2", "A3"], "total_amount": "28.50", "created_at": "2026-10-28T09:00:00+00:00", "status": "confirmed"},
-  {"id": "RES002", "session_id": "SES002", "customer_name": "Karim Benali", "customer_email": "karim@example.com", "seats": ["B4", "B5"], "total_amount": "23.00", "created_at": "2026-10-28T09:15:00+00:00", "status": "confirmed"},
-  {"id": "RES003", "session_id": "SES002", "customer_name": "Sofia Garcia", "customer_email": "sofia@example.com", "seats": ["E8"], "total_amount": "11.50", "created_at": "2026-10-28T09:30:00+00:00", "status": "confirmed"},
-  {"id": "RES004", "session_id": "SES010", "customer_name": "Thomas Petit", "customer_email": "thomas@example.com", "seats": ["C1", "C2"], "total_amount": "16.00", "created_at": "2026-10-28T10:00:00+00:00", "status": "confirmed"},
-  {"id": "RES005", "session_id": "SES014", "customer_name": "Nora Dupont", "customer_email": "nora@example.com", "seats": ["D6", "D7", "D8"], "total_amount": "37.50", "created_at": "2026-10-28T10:30:00+00:00", "status": "confirmed"},
-  {"id": "RES006", "session_id": "SES023", "customer_name": "Yanis Roux", "customer_email": "yanis@example.com", "seats": ["A1", "H12"], "total_amount": "23.00", "created_at": "2026-10-28T11:00:00+00:00", "status": "confirmed"},
-  {"id": "RES007", "session_id": "SES031", "customer_name": "Emma Laurent", "customer_email": "emma@example.com", "seats": ["A5", "A6"], "total_amount": "15.00", "created_at": "2026-10-28T11:30:00+00:00", "status": "confirmed"},
-  {"id": "RES008", "session_id": "SES045", "customer_name": "Lucas Moreau", "customer_email": "lucas@example.com", "seats": ["F10"], "total_amount": "12.00", "created_at": "2026-10-28T12:00:00+00:00", "status": "confirmed"},
-  {"id": "RES009", "session_id": "SES055", "customer_name": "Maya Cohen", "customer_email": "maya@example.com", "seats": ["C3", "C4"], "total_amount": "23.00", "created_at": "2026-10-28T12:30:00+00:00", "status": "confirmed"},
-  {"id": "RES010", "session_id": "SES058", "customer_name": "Hugo Bernard", "customer_email": "hugo@example.com", "seats": ["B2"], "total_amount": "8.00", "created_at": "2026-10-28T13:00:00+00:00", "status": "confirmed"}
+  {
+    "id": "RES001",
+    "session_id": "SES001",
+    "customer_name": "Alice Martin",
+    "customer_email": "alice@example.com",
+    "seats": [
+      "A1",
+      "A2",
+      "A3"
+    ],
+    "total_amount": "28.50",
+    "created_at": "2026-10-28T09:00:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES002",
+    "session_id": "SES002",
+    "customer_name": "Karim Benali",
+    "customer_email": "karim@example.com",
+    "seats": [
+      "B4",
+      "B5"
+    ],
+    "total_amount": "23.00",
+    "created_at": "2026-10-28T09:15:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES003",
+    "session_id": "SES002",
+    "customer_name": "Sofia Garcia",
+    "customer_email": "sofia@example.com",
+    "seats": [
+      "E8"
+    ],
+    "total_amount": "11.50",
+    "created_at": "2026-10-28T09:30:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES004",
+    "session_id": "SES010",
+    "customer_name": "Thomas Petit",
+    "customer_email": "thomas@example.com",
+    "seats": [
+      "C1",
+      "C2"
+    ],
+    "total_amount": "16.00",
+    "created_at": "2026-10-28T10:00:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES005",
+    "session_id": "SES014",
+    "customer_name": "Nora Dupont",
+    "customer_email": "nora@example.com",
+    "seats": [
+      "D6",
+      "D7",
+      "D8"
+    ],
+    "total_amount": "37.50",
+    "created_at": "2026-10-28T10:30:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES006",
+    "session_id": "SES023",
+    "customer_name": "Yanis Roux",
+    "customer_email": "yanis@example.com",
+    "seats": [
+      "A1",
+      "H12"
+    ],
+    "total_amount": "23.00",
+    "created_at": "2026-10-28T11:00:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES007",
+    "session_id": "SES031",
+    "customer_name": "Emma Laurent",
+    "customer_email": "emma@example.com",
+    "seats": [
+      "A5",
+      "A6"
+    ],
+    "total_amount": "15.00",
+    "created_at": "2026-10-28T11:30:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES008",
+    "session_id": "SES045",
+    "customer_name": "Lucas Moreau",
+    "customer_email": "lucas@example.com",
+    "seats": [
+      "F10"
+    ],
+    "total_amount": "12.00",
+    "created_at": "2026-10-28T12:00:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES009",
+    "session_id": "SES055",
+    "customer_name": "Maya Cohen",
+    "customer_email": "maya@example.com",
+    "seats": [
+      "C3",
+      "C4"
+    ],
+    "total_amount": "23.00",
+    "created_at": "2026-10-28T12:30:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES010",
+    "session_id": "SES058",
+    "customer_name": "Hugo Bernard",
+    "customer_email": "hugo@example.com",
+    "seats": [
+      "B2"
+    ],
+    "total_amount": "8.00",
+    "created_at": "2026-10-28T13:00:00+00:00",
+    "status": "confirmed"
+  },
+  {
+    "id": "RES-5F5C6191",
+    "session_id": "SES001",
+    "customer_name": "Siwar",
+    "customer_email": "siwarmsellem@gmail.com",
+    "seats": [
+      "C1"
+    ],
+    "total_amount": "9.50",
+    "created_at": "2026-10-28T14:16:19.759906+00:00",
+    "status": "confirmed"
+  }
 ]
